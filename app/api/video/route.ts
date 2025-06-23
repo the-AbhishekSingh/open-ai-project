@@ -5,6 +5,7 @@ import {
   createVideoWithImageOverlay,
   createVideoWithSubtitleOverlay,
   createVideoWithVideoOverlay,
+  createVideoWithMultipleTextOverlays,
   extractTextFromVideo
 } from '@/lib/cloudinary';
 
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
     const action = formData.get('action') as string;
     const videoFile = formData.get('video') as File;
     const overlayText = formData.get('text') as string;
+    const textPlacement = formData.get('textPlacement') as string;
+    const textStyle = formData.get('textStyle') as string;
+    const multipleTexts = formData.get('multipleTexts') as string;
     const imageFile = formData.get('image') as File;
     const subtitleFile = formData.get('subtitle') as File;
     const overlayVideoFile = formData.get('overlayVideo') as File;
@@ -39,8 +43,34 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        const textOverlayVideo = createVideoWithTextOverlay(videoPublicId, overlayText);
+
+        // Parse text placement and style options
+        const placement = textPlacement ? JSON.parse(textPlacement) : { position: 'bottom-center' };
+        const style = textStyle ? JSON.parse(textStyle) : {
+          fontFamily: 'Arial',
+          fontSize: 24,
+          color: '#ffffff',
+          fontWeight: 'bold'
+        };
+
+        const textOverlayVideo = createVideoWithTextOverlay(videoPublicId, overlayText, {
+          textStyle: style,
+          textPlacement: placement
+        });
         processedVideoUrl = textOverlayVideo.toURL();
+        break;
+
+      case 'multiple-text-overlays':
+        if (!multipleTexts) {
+          return NextResponse.json(
+            { error: 'Multiple texts configuration is required' },
+            { status: 400 }
+          );
+        }
+
+        const textOverlays = JSON.parse(multipleTexts);
+        const multipleTextOverlayVideo = createVideoWithMultipleTextOverlays(videoPublicId, textOverlays);
+        processedVideoUrl = multipleTextOverlayVideo.toURL();
         break;
 
       case 'image-overlay':

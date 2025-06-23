@@ -113,10 +113,7 @@ export const createImageWithTextOverlay = (
   // Create text overlay
   const textStyle = new TextStyle(style.fontFamily || 'Arial', style.fontSize || 20);
   
-  if (style.color) {
-    textStyle.textColor(style.color);
-  }
-  
+  // Apply text styling - note: color is set in the text overlay, not TextStyle
   if (style.fontWeight) {
     textStyle.fontWeight(style.fontWeight);
   }
@@ -125,7 +122,13 @@ export const createImageWithTextOverlay = (
     textStyle.fontStyle(style.fontStyle);
   }
 
+  // Create text overlay with color applied directly
   let textOverlay = source(text(overlayText, textStyle));
+  
+  // Apply color using the color parameter in text overlay
+  if (style.color) {
+    textOverlay = source(text(overlayText, textStyle).color(style.color));
+  }
 
   // Apply text positioning
   if (placement.gravity) {
@@ -309,11 +312,21 @@ export const createImageWithMultipleTextOverlays = (
   textOverlays.forEach((overlay, index) => {
     const textStyle = new TextStyle(overlay.style.fontFamily || 'Arial', overlay.style.fontSize || 20);
     
-    if (overlay.style.color) {
-      textStyle.textColor(overlay.style.color);
+    // Apply text styling
+    if (overlay.style.fontWeight) {
+      textStyle.fontWeight(overlay.style.fontWeight);
+    }
+    
+    if (overlay.style.fontStyle) {
+      textStyle.fontStyle(overlay.style.fontStyle);
     }
 
+    // Create text overlay with color applied directly
     let textOverlay = source(text(overlay.text, textStyle));
+    
+    if (overlay.style.color) {
+      textOverlay = source(text(overlay.text, textStyle).color(overlay.style.color));
+    }
 
     // Apply positioning for each overlay
     if (overlay.placement.gravity) {
